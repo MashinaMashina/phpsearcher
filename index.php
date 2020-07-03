@@ -1,35 +1,24 @@
 <?php
-function searchFilename($folderName, $fileName){
+function searchContent($folderName, $pattern, &$result = []){
     // открываем текущую папку 
     $dir = opendir($folderName); 
     // перебираем папку 
     while (($file = readdir($dir)) !== false){ // перебираем пока есть файлы
         if($file != "." && $file != ".."){ // если это не папка
-            if(is_file($folderName."/".$file)){ // если файл проверяем имя
-                // если имя файла нужное, то вернем путь до него
-                if($file == $fileName) return $folderName."/".$file;
-            } 
-            // если папка, то рекурсивно вызываем searchFilename
-            if(is_dir($folderName."/".$file)) return searchFilename($folderName."/".$file, $fileName);
-        } 
-    }
-    // закрываем папку
-    closedir($dir);
-}
-function searchContent($folderName, $pattern){
-    // открываем текущую папку 
-    $dir = opendir($folderName); 
-    // перебираем папку 
-    while (($file = readdir($dir)) !== false){ // перебираем пока есть файлы
-        if($file != "." && $file != ".."){ // если это не папка
-            if(is_file($folderName."/".$file)){ // если файл проверяем имя
-                // если имя файла нужное, то вернем путь до него
-                if(strpos(file_get_contents($folderName."/".$file)) !== false) return $folderName."/".$file;
-            } 
+            if(is_file($folderName."/".$file) and pathinfo($folderName."/".$file, PATHINFO_EXTENSION ) === 'php'){ // если файл проверяем имя
+               
+                if(strpos(file_get_contents($folderName."/".$file), $pattern) !== false)
+					$result[] = $folderName."/".$file;
+            }
+			
+			if(count($result) > 100)
+				return $result;
+			
             // если папка, то рекурсивно вызываем searchContent
-            if(is_dir($folderName."/".$file)) return searchContent($folderName."/".$file, $fileName);
+            if(is_dir($folderName."/".$file)) searchContent($folderName."/".$file, $pattern, $result);
         } 
     }
     // закрываем папку
     closedir($dir);
+	return $result;
 }
